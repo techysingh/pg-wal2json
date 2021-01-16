@@ -1,0 +1,28 @@
+# use official postgres image 
+FROM postgres:10.11
+
+# get ready to install new stuff
+RUN apt-get update -y
+RUN apt-get install -y wget apt-utils
+
+# add postgre apt repo
+RUN wget -P /tmp https://salsa.debian.org/postgresql/postgresql-common/raw/master/pgdg/apt.postgresql.org.sh; \
+    chmod 700 /tmp/apt.postgresql.org.sh; \
+    /tmp/apt.postgresql.org.sh -y; \
+    rm /tmp/apt.postgresql.org.sh
+
+# update for the heck of it
+RUN apt-get update -y
+
+#install wal2json
+RUN apt-get install postgresql-13-wal2json-dbgsym -y
+
+# enable wal2json
+RUN if [ -e /usr/share/postgresql/13/postgresql.conf.sample ]; then \
+        postgresfile=/usr/share/postgresql/13/postgresql.conf.sample; \
+    else \
+        postgresfile=/usr/share/postgresql/13/postgresql.conf.sample; \
+    fi && \
+    echo "shared_preload_libraries='wal2json'" >> $postgresfile &&\
+    echo "max_wal_senders=10" >> $postgresfile &&\
+    echo "max_replication_slots=10" >> $postgresfile
